@@ -278,7 +278,6 @@ SYNONYM_MAP: Dict[str, str] = {
     "holdings": "asset",
     "position": "position",
     "portfolio": "portfolio",
-    "book": "portfolio",
     "fund": "fund",
     "mutual": "fund",
     "scheme": "fund",
@@ -291,9 +290,9 @@ SYNONYM_MAP: Dict[str, str] = {
     "dow_jones_index": "benchmark",
     "msci_index": "benchmark",
     # Books of record
-    "accounting_book_of_record": "book_of_record",
-    "investment_book_of_record": "book_of_record",
-    "book_of_record": "book_of_record",
+    "accounting_book_of_record": "account_book_of_record",
+    "investment_book_of_record": "account_book_of_record",
+    "book_of_record": "account_book_of_record",
     # PnL
     "profit_and_loss": "pnl",
     "pnl": "pnl",
