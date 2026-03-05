@@ -165,7 +165,7 @@ ACRONYM_MAP: Dict[str, str] = {
 
     # ABOR / IBOR / accounting & PnL
     "abor": "accounting_book_of_record",
-    "ibor": "investment_book_of_record",
+    "ibor": "investment book of record",
     "gl": "general_ledger",
     "pnl": "profit_and_loss",
     "pl": "profit_and_loss",
