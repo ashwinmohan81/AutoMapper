@@ -47,6 +47,7 @@ ACRONYM_MAP: Dict[str, str] = {
     "cppty": "counterparty",
     "pty": "party",
     "posn": "position",
+    "indiv": "individual",
 
     # Generic identifiers / references
     "id": "identifier",
@@ -109,6 +110,11 @@ ACRONYM_MAP: Dict[str, str] = {
     "bunit": "business_unit",
     "bu": "business_unit",
     "org": "organisation",
+    "corp": "corporate",
+    "co": "company",
+    "cmpy": "company",
+    "ent": "entity",
+    "inst": "institution",
     "br": "branch",
     "brnch": "branch",
 
@@ -222,6 +228,17 @@ ACRONYM_MAP: Dict[str, str] = {
     "opt": "option",
     "call": "call_option",
     "put": "put_option",
+    "isin": "isin",
+    "cusip": "cusip",
+    "sedol": "sedol",
+    "tkr": "ticker",
+    "tckr": "ticker",
+    "tickr": "ticker",
+    "ticker": "ticker",
+    "ric": "ric",
+    "bbg": "bloomberg",
+    "bbgid": "bloomberg_identifier",
+    "bbid": "bloomberg_identifier",
 }
 
 # Domain-oriented synonym map.
@@ -232,6 +249,11 @@ SYNONYM_MAP: Dict[str, str] = {
     "client": "customer",
     "consumer": "customer",
     "party": "customer",
+    "person": "person",
+    "individual": "person",
+    "natural_person": "person",
+    "employee": "employee",
+    "staff": "employee",
     "account_holder": "customer",
     "accountholder": "customer",
     # Accounts / contracts
@@ -285,6 +307,13 @@ SYNONYM_MAP: Dict[str, str] = {
     "fund": "fund",
     "mutual": "fund",
     "scheme": "fund",
+    # Organisations / entities
+    "organisation": "organisation",
+    "organization": "organisation",
+    "entity": "organisation",
+    "corporate": "organisation",
+    "company": "organisation",
+    "institution": "organisation",
     "benchmark": "benchmark",
     "index": "benchmark",
     "sp_500_index": "benchmark",
@@ -368,6 +397,13 @@ SYNONYM_MAP: Dict[str, str] = {
     "put_option": "derivative",
     "warrant": "derivative",
     "credit_default_swap": "derivative",
+    "isin": "instrument_identifier",
+    "cusip": "instrument_identifier",
+    "sedol": "instrument_identifier",
+    "ticker": "instrument_identifier",
+    "ric": "instrument_identifier",
+    "bloomberg": "instrument_identifier",
+    "bloomberg_identifier": "instrument_identifier",
     # Tenor / horizon
     "one": "horizon_1y",
     "three": "horizon_3y",
