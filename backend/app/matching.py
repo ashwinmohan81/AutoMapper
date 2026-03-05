@@ -65,6 +65,10 @@ ACRONYM_MAP: Dict[str, str] = {
     "ccy": "currency",
     "cur": "currency",
     "curr": "currency",
+    "in": "indicator",
+    "ind": "indicator",
+    "fl": "flag",
+    "flg": "flag",
 
     # Monetary amounts / balances / prices
     "amt": "amount",
@@ -336,10 +340,9 @@ SYNONYM_MAP: Dict[str, str] = {
     "mobile": "phone",
     # Currencies
     "currency": "currency",
-    # Contact details
-    "phone": "phone",
-    "telephone": "phone",
-    "mobile": "phone",
+    # Flags / indicators
+    "indicator": "flag_indicator",
+    "flag": "flag_indicator",
     # Instruments
     "equity": "equity",
     "stock": "equity",
