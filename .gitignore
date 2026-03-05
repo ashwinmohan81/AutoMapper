@@ -1,0 +1,6 @@
+backend/.venv/
+*.pyc
+__pycache__/
+semantic_mapper.db
+._*
+.DS_Store

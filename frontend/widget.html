@@ -1,0 +1,395 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Semantic Auto Mapper Widget</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style>
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        height: 100%;
+        width: 100%;
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text",
+          sans-serif;
+        background: #020617;
+        color: #e5e7eb;
+      }
+
+      .widget {
+        box-sizing: border-box;
+        height: 100%;
+        width: 100%;
+        padding: 10px;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+
+      .header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 12px;
+      }
+
+      .header-title {
+        font-weight: 600;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      .badge {
+        font-size: 10px;
+        padding: 2px 6px;
+        border-radius: 999px;
+        border: 1px solid rgba(148, 163, 184, 0.5);
+        background: rgba(15, 23, 42, 0.9);
+        color: #9ca3af;
+      }
+
+      .body {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+
+      label {
+        font-size: 11px;
+        color: #9ca3af;
+      }
+
+      select,
+      textarea {
+        width: 100%;
+        border-radius: 8px;
+        border: 1px solid rgba(51, 65, 85, 0.9);
+        background: rgba(15, 23, 42, 0.95);
+        color: #e5e7eb;
+        padding: 6px 7px;
+        font-size: 11px;
+        outline: none;
+        box-sizing: border-box;
+      }
+
+      textarea {
+        resize: vertical;
+        min-height: 68px;
+        max-height: 140px;
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+          "Liberation Mono", "Courier New", monospace;
+      }
+
+      .row {
+        display: flex;
+        gap: 6px;
+      }
+
+      .row > * {
+        flex: 1 1 auto;
+      }
+
+      .footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 6px;
+      }
+
+      .status {
+        font-size: 10px;
+        color: #9ca3af;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+      }
+
+      .status-dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 999px;
+        background: #4b5563;
+      }
+
+      .status-dot.loading {
+        background: #38bdf8;
+      }
+
+      .status-dot.error {
+        background: #f97373;
+      }
+
+      .status-dot.success {
+        background: #4ade80;
+      }
+
+      button {
+        border-radius: 999px;
+        border: none;
+        font-size: 11px;
+        padding: 5px 11px;
+        cursor: pointer;
+        background: linear-gradient(to right, #38bdf8, #6366f1);
+        color: #020617;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 11px;
+      }
+
+      th,
+      td {
+        padding: 4px 5px;
+        text-align: left;
+      }
+
+      th {
+        font-size: 10px;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: #9ca3af;
+        border-bottom: 1px solid rgba(31, 41, 55, 0.9);
+      }
+
+      tr:nth-child(even) td {
+        background: rgba(15, 23, 42, 0.8);
+      }
+
+      tr:nth-child(odd) td {
+        background: rgba(15, 23, 42, 0.96);
+      }
+
+      tr:hover td {
+        background: rgba(15, 23, 42, 1);
+      }
+
+      .score-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 1px 6px;
+        border-radius: 999px;
+        border: 1px solid rgba(56, 189, 248, 0.8);
+      }
+
+      .actions {
+        display: flex;
+        gap: 4px;
+        flex-wrap: wrap;
+      }
+
+      .btn-small {
+        border-radius: 999px;
+        border: none;
+        font-size: 10px;
+        padding: 2px 6px;
+        cursor: pointer;
+        background: rgba(15, 23, 42, 0.95);
+        color: #e5e7eb;
+        border: 1px solid rgba(55, 65, 81, 1);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="widget">
+      <div class="header">
+        <div class="header-title">Semantic Mapper</div>
+        <div class="badge">Widget</div>
+      </div>
+      <div class="body">
+        <div class="row">
+          <div>
+            <label for="direction">Direction</label>
+            <select id="direction">
+              <option value="physical_to_glossary">Physical → Glossary</option>
+              <option value="glossary_to_physical">Glossary → Physical</option>
+              <option value="physical_to_physical">Physical → Physical</option>
+              <option value="glossary_to_glossary">Glossary → Glossary</option>
+            </select>
+          </div>
+          <div></div>
+        </div>
+        <div class="row">
+          <div>
+            <label for="source">Source terms</label>
+            <textarea id="source" placeholder="ACT_BAL&#10;CUST_ID"></textarea>
+          </div>
+          <div>
+            <label for="target">Target terms</label>
+            <textarea
+              id="target"
+              placeholder="Account Balance&#10;Customer Identifier"
+            ></textarea>
+          </div>
+        </div>
+        <div style="flex: 1; overflow: auto; border-radius: 8px; border: 1px solid rgba(30, 64, 175, 0.8);">
+          <table>
+            <thead>
+              <tr>
+                <th>Source</th>
+                <th>Target</th>
+                <th>Score</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="tbody">
+              <tr>
+                <td colspan="4" style="text-align: center; padding: 4px 0; color: #9ca3af;">
+                  No mappings yet.
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="footer">
+        <div class="status">
+          <span class="status-dot" id="s-dot"></span>
+          <span id="s-text">Idle</span>
+        </div>
+        <button type="button" id="run">Suggest</button>
+      </div>
+    </div>
+    <script>
+      function parseTerms(text) {
+        return text
+          .split(/[\n,]/)
+          .map((t) => t.trim())
+          .filter(Boolean);
+      }
+
+      const dot = document.getElementById("s-dot");
+      const text = document.getElementById("s-text");
+      const tbody = document.getElementById("tbody");
+
+      function setStatus(state, msg) {
+        dot.classList.remove("loading", "error", "success");
+        if (state === "loading") dot.classList.add("loading");
+        else if (state === "error") dot.classList.add("error");
+        else if (state === "success") dot.classList.add("success");
+        text.textContent = msg;
+      }
+
+      function renderEmpty() {
+        tbody.innerHTML =
+          '<tr><td colspan="4" style="text-align:center;padding:4px 0;color:#9ca3af;">No mappings yet.</td></tr>';
+      }
+
+      function buildRow(source, candidate, direction, allTargets) {
+        const tr = document.createElement("tr");
+        const pct = Math.round(candidate.score * 100);
+        tr.innerHTML = `
+          <td><code>${source}</code></td>
+          <td><code>${candidate.target_term}</code></td>
+          <td>
+            <span class="score-pill">${pct}%</span>
+          </td>
+          <td class="actions">
+            <button type="button" class="btn-small a">Approve</button>
+            <button type="button" class="btn-small r">Reject</button>
+          </td>
+        `;
+
+        const candidateScores = {};
+        candidateScores[candidate.target_term] = candidate.score;
+
+        tr.querySelector(".a").addEventListener("click", () => {
+          sendFeedback({
+            direction,
+            source_term: source,
+            chosen_target: candidate.target_term,
+            approved: true,
+            rejected_targets: [],
+            candidate_scores: candidateScores,
+          });
+        });
+
+        tr.querySelector(".r").addEventListener("click", () => {
+          sendFeedback({
+            direction,
+            source_term: source,
+            chosen_target: candidate.target_term,
+            approved: false,
+            rejected_targets: [candidate.target_term],
+            candidate_scores: candidateScores,
+          });
+        });
+
+        return tr;
+      }
+
+      async function sendFeedback(payload) {
+        try {
+          setStatus("loading", "Feedback…");
+          const res = await fetch("/api/feedback", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+          });
+          if (!res.ok) throw new Error("feedback failed");
+          setStatus("success", "Feedback ok");
+          setTimeout(() => setStatus("success", "Idle"), 800);
+        } catch (e) {
+          console.error(e);
+          setStatus("error", "Feedback error");
+        }
+      }
+
+      document.getElementById("run").addEventListener("click", async () => {
+        const direction = document.getElementById("direction").value;
+        const sourceTerms = parseTerms(
+          document.getElementById("source").value || ""
+        );
+        const targetTerms = parseTerms(
+          document.getElementById("target").value || ""
+        );
+        if (!sourceTerms.length || !targetTerms.length) {
+          alert("Provide at least one source and one target term.");
+          return;
+        }
+        setStatus("loading", "Suggesting…");
+        try {
+          const res = await fetch("/api/map", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              direction,
+              source_terms: sourceTerms,
+              target_terms: targetTerms,
+            }),
+          });
+          if (!res.ok) throw new Error("request failed");
+          const data = await res.json();
+          const suggestions = data.suggestions || [];
+          if (!suggestions.length) {
+            renderEmpty();
+            setStatus("success", "No candidates");
+            return;
+          }
+          tbody.innerHTML = "";
+          for (const s of suggestions) {
+            const candidates = s.candidates || [];
+            if (!candidates.length) continue;
+            const row = buildRow(s.source_term, candidates[0], data.direction, targetTerms);
+            tbody.appendChild(row);
+          }
+          setStatus("success", "Done");
+        } catch (e) {
+          console.error(e);
+          setStatus("error", "Error");
+        }
+      });
+
+      renderEmpty();
+      setStatus("success", "Idle");
+    </script>
+  </body>
+</html>
+

@@ -1,0 +1,1290 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Semantic Auto Mapper</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style>
+      :root {
+        color-scheme: light dark;
+        --bg: #050816;
+        --card-bg: #0f172a;
+        --accent: #38bdf8;
+        --accent-soft: rgba(56, 189, 248, 0.12);
+        --border: #1e293b;
+        --text: #e5e7eb;
+        --muted: #9ca3af;
+        --danger: #f97373;
+        --success: #4ade80;
+        --warning: #facc15;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text",
+          sans-serif;
+        background: radial-gradient(circle at top, #0f172a 0, #020617 55%, #000 100%);
+        color: var(--text);
+        display: flex;
+        align-items: stretch;
+        justify-content: center;
+        padding: 24px;
+      }
+
+      .shell {
+        width: 100%;
+        max-width: 1200px;
+        background: linear-gradient(
+            135deg,
+            rgba(56, 189, 248, 0.08),
+            transparent 40%,
+            rgba(168, 85, 247, 0.16)
+          ),
+          radial-gradient(circle at top left, rgba(56, 189, 248, 0.16), transparent),
+          radial-gradient(circle at bottom right, rgba(168, 85, 247, 0.16), transparent),
+          #020617;
+        border-radius: 18px;
+        border: 1px solid rgba(148, 163, 184, 0.3);
+        box-shadow:
+          0 24px 80px rgba(15, 23, 42, 0.9),
+          0 0 0 1px rgba(15, 23, 42, 0.9) inset;
+        padding: 20px 22px 18px;
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+      }
+
+      .shell-header {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 4px;
+      }
+
+      .dots {
+        display: flex;
+        gap: 6px;
+      }
+
+      .dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 999px;
+      }
+
+      .dot.red {
+        background: #fb5f56;
+      }
+      .dot.amber {
+        background: #fdbc2e;
+      }
+      .dot.green {
+        background: #27c840;
+      }
+
+      .title-block {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+      }
+
+      .title-row {
+        display: flex;
+        align-items: baseline;
+        gap: 8px;
+      }
+
+      h1 {
+        margin: 0;
+        font-size: 18px;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        font-weight: 600;
+      }
+
+      .badge {
+        font-size: 11px;
+        padding: 2px 7px;
+        border-radius: 999px;
+        border: 1px solid rgba(148, 163, 184, 0.5);
+        background: rgba(15, 23, 42, 0.7);
+        color: var(--muted);
+      }
+
+      .subtitle {
+        font-size: 12px;
+        color: var(--muted);
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: minmax(0, 1.1fr) minmax(0, 1.2fr);
+        gap: 16px;
+      }
+
+      @media (max-width: 900px) {
+        body {
+          padding: 12px;
+        }
+
+        .shell {
+          padding: 16px 14px 14px;
+        }
+
+        .grid {
+          grid-template-columns: minmax(0, 1fr);
+        }
+      }
+
+      .panel {
+        background: radial-gradient(
+            circle at top left,
+            rgba(15, 118, 255, 0.16),
+            transparent 60%
+          ),
+          radial-gradient(
+            circle at bottom right,
+            rgba(168, 85, 247, 0.2),
+            transparent 60%
+          ),
+          #020617;
+        border-radius: 14px;
+        padding: 14px 14px 12px;
+        border: 1px solid rgba(51, 65, 85, 0.9);
+        box-shadow:
+          0 12px 40px rgba(15, 23, 42, 0.9),
+          0 0 0 1px rgba(15, 23, 42, 0.9) inset;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .panel::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(
+          circle at top right,
+          rgba(59, 130, 246, 0.16),
+          transparent 55%
+        );
+        opacity: 0.7;
+        pointer-events: none;
+      }
+
+      .panel-inner {
+        position: relative;
+        z-index: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+
+      .panel-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        gap: 8px;
+      }
+
+      .panel-title {
+        font-size: 14px;
+        font-weight: 600;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: #e5e7eb;
+      }
+
+      .panel-caption {
+        font-size: 11px;
+        color: var(--muted);
+      }
+
+      label {
+        font-size: 12px;
+        color: var(--muted);
+      }
+
+      select,
+      textarea,
+      input[type="text"] {
+        width: 100%;
+        border-radius: 10px;
+        border: 1px solid rgba(51, 65, 85, 0.9);
+        background: rgba(15, 23, 42, 0.9);
+        color: var(--text);
+        padding: 8px 9px;
+        font-size: 12px;
+        outline: none;
+        transition: border-color 0.12s ease, box-shadow 0.12s ease,
+          background-color 0.12s ease, transform 0.04s ease;
+      }
+
+      select:focus,
+      textarea:focus,
+      input[type="text"]:focus {
+        border-color: var(--accent);
+        box-shadow:
+          0 0 0 1px rgba(56, 189, 248, 0.4),
+          0 12px 35px rgba(15, 23, 42, 0.95);
+        background: #020617;
+        transform: translateY(-0.5px);
+      }
+
+      textarea {
+        resize: vertical;
+        min-height: 96px;
+        max-height: 240px;
+        line-height: 1.5;
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+          "Liberation Mono", "Courier New", monospace;
+      }
+
+      .row {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+        flex-wrap: wrap;
+      }
+
+      .row > * {
+        flex: 1 1 auto;
+      }
+
+      .chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        border-radius: 999px;
+        padding: 2px 7px;
+        font-size: 11px;
+        border: 1px solid rgba(148, 163, 184, 0.5);
+        color: var(--muted);
+      }
+
+      .chip-pill {
+        border-radius: 999px;
+        background: rgba(15, 23, 42, 0.9);
+        padding: 2px 7px;
+        border: 1px solid rgba(51, 65, 85, 0.9);
+        font-size: 11px;
+        color: var(--muted);
+      }
+
+      button {
+        border-radius: 999px;
+        border: none;
+        font-size: 12px;
+        font-weight: 500;
+        padding: 7px 14px;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background: radial-gradient(circle at top left, #0ea5e9, #6366f1);
+        color: #0b1120;
+        box-shadow:
+          0 14px 30px rgba(37, 99, 235, 0.5),
+          0 0 0 1px rgba(15, 23, 42, 0.95) inset;
+        transition: transform 0.06s ease, box-shadow 0.08s ease, filter 0.08s ease;
+      }
+
+      button:hover {
+        transform: translateY(-1px);
+        filter: brightness(1.05);
+        box-shadow:
+          0 18px 40px rgba(37, 99, 235, 0.65),
+          0 0 0 1px rgba(15, 23, 42, 0.95) inset;
+      }
+
+      button:active {
+        transform: translateY(0px) scale(0.99);
+        box-shadow:
+          0 10px 24px rgba(15, 23, 42, 0.95),
+          0 0 0 1px rgba(15, 23, 42, 0.95) inset;
+      }
+
+      button.secondary {
+        background: rgba(15, 23, 42, 0.95);
+        color: var(--muted);
+        box-shadow:
+          0 10px 26px rgba(15, 23, 42, 0.9),
+          0 0 0 1px rgba(51, 65, 85, 0.9) inset;
+      }
+
+      button.secondary:hover {
+        box-shadow:
+          0 14px 32px rgba(15, 23, 42, 0.95),
+          0 0 0 1px rgba(75, 85, 99, 1) inset;
+      }
+
+      button.small {
+        padding: 4px 9px;
+        font-size: 11px;
+      }
+
+      .results-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .status {
+        font-size: 11px;
+        color: var(--muted);
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+
+      .status-dot {
+        width: 7px;
+        height: 7px;
+        border-radius: 999px;
+        background: var(--accent);
+        box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.28);
+      }
+
+      .status-dot.idle {
+        background: #4b5563;
+        box-shadow: none;
+      }
+
+      .status-dot.error {
+        background: var(--danger);
+        box-shadow: 0 0 0 3px rgba(248, 113, 113, 0.28);
+      }
+
+      .status-dot.success {
+        background: var(--success);
+        box-shadow: 0 0 0 3px rgba(74, 222, 128, 0.28);
+      }
+
+      .table-shell {
+        border-radius: 12px;
+        border: 1px solid rgba(30, 64, 175, 0.6);
+        background: radial-gradient(
+            circle at top left,
+            rgba(56, 189, 248, 0.14),
+            transparent 55%
+          ),
+          #020617;
+        overflow: hidden;
+        box-shadow:
+          0 14px 38px rgba(15, 23, 42, 0.95),
+          0 0 0 1px rgba(15, 23, 42, 0.95) inset;
+      }
+
+      .pagination {
+        display: flex;
+        justify-content: flex-end;
+        align-items: center;
+        gap: 8px;
+        margin-top: 6px;
+        font-size: 11px;
+        color: var(--muted);
+      }
+
+      .pagination-info {
+        padding: 2px 6px;
+        border-radius: 999px;
+        border: 1px solid rgba(51, 65, 85, 0.9);
+        background: rgba(15, 23, 42, 0.9);
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 12px;
+      }
+
+      thead {
+        background: linear-gradient(to right, #0f172a, #020617);
+      }
+
+      th,
+      td {
+        padding: 7px 10px;
+        text-align: left;
+      }
+
+      th {
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: var(--muted);
+        border-bottom: 1px solid rgba(30, 64, 175, 0.9);
+      }
+
+      tr:nth-child(even) td {
+        background: rgba(15, 23, 42, 0.72);
+      }
+
+      tr:nth-child(odd) td {
+        background: rgba(15, 23, 42, 0.86);
+      }
+
+      tr:hover td {
+        background: radial-gradient(
+            circle at top left,
+            rgba(56, 189, 248, 0.14),
+            transparent 55%
+          ),
+          rgba(15, 23, 42, 0.96);
+      }
+
+      .score-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        padding: 2px 8px;
+        border-radius: 999px;
+        font-size: 11px;
+        border: 1px solid rgba(56, 189, 248, 0.6);
+        background: linear-gradient(
+          to right,
+          rgba(56, 189, 248, 0.12),
+          rgba(56, 189, 248, 0.04)
+        );
+      }
+
+      .score-bar {
+        position: relative;
+        width: 80px;
+        height: 5px;
+        border-radius: 999px;
+        background: rgba(15, 23, 42, 0.9);
+        overflow: hidden;
+      }
+
+      .score-fill {
+        position: absolute;
+        inset: 0;
+        width: 0;
+        border-radius: inherit;
+        background: linear-gradient(to right, #22c55e, #eab308, #f97316, #ef4444);
+        transform-origin: left center;
+      }
+
+      .tag {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        font-size: 10px;
+        padding: 2px 7px;
+        border-radius: 999px;
+        background: rgba(15, 23, 42, 0.9);
+        border: 1px solid rgba(55, 65, 81, 1);
+        color: var(--muted);
+      }
+
+      .tag span.dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 999px;
+      }
+
+      .tag .dot.green {
+        background: var(--success);
+      }
+
+      .tag .dot.red {
+        background: var(--danger);
+      }
+
+      .tag .dot.blue {
+        background: var(--accent);
+      }
+
+      .actions {
+        display: flex;
+        gap: 6px;
+        flex-wrap: wrap;
+      }
+
+      .pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        padding: 2px 7px;
+        border-radius: 999px;
+        font-size: 10px;
+        border: 1px solid rgba(55, 65, 81, 1);
+        color: var(--muted);
+      }
+
+      /* Override modal */
+      .override-backdrop {
+        position: fixed;
+        inset: 0;
+        background: rgba(15, 23, 42, 0.75);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 40;
+      }
+
+      .override-backdrop.hidden {
+        display: none;
+      }
+
+      .override-dialog {
+        width: min(460px, 90vw);
+        background: #020617;
+        border-radius: 14px;
+        border: 1px solid rgba(51, 65, 85, 0.9);
+        box-shadow:
+          0 22px 60px rgba(15, 23, 42, 0.95),
+          0 0 0 1px rgba(15, 23, 42, 0.9) inset;
+        padding: 14px 14px 10px;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+
+      .override-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        gap: 8px;
+      }
+
+      .override-title {
+        font-size: 13px;
+        font-weight: 600;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+      }
+
+      .override-caption {
+        font-size: 11px;
+        color: var(--muted);
+      }
+
+      .override-search {
+        font-size: 12px;
+      }
+
+      .override-list {
+        margin: 4px 0 0;
+        padding: 0;
+        list-style: none;
+        max-height: 200px;
+        overflow-y: auto;
+        border-radius: 10px;
+        border: 1px solid rgba(51, 65, 85, 0.9);
+        background: rgba(15, 23, 42, 0.96);
+      }
+
+      .override-item {
+        padding: 6px 9px;
+        font-size: 12px;
+        cursor: pointer;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 6px;
+      }
+
+      .override-item:hover {
+        background: radial-gradient(
+            circle at top left,
+            rgba(56, 189, 248, 0.18),
+            transparent 60%
+          ),
+          #020617;
+      }
+
+      .override-item span.term {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .override-item span.badge {
+        font-size: 10px;
+        padding: 1px 6px;
+        border-radius: 999px;
+        border: 1px solid rgba(55, 65, 81, 1);
+        background: rgba(15, 23, 42, 0.9);
+        color: var(--muted);
+      }
+
+      .override-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 8px;
+        margin-top: 4px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="shell">
+      <div class="shell-header">
+        <div class="dots">
+          <div class="dot red"></div>
+          <div class="dot amber"></div>
+          <div class="dot green"></div>
+        </div>
+        <div class="title-block">
+          <div class="title-row">
+            <h1>Semantic Auto Mapper</h1>
+            <span class="badge">Human-in-the-loop · Experimental</span>
+          </div>
+          <div class="subtitle">
+            Map glossary &amp; physical attributes via acronym-aware, semantic-ish
+            matching with feedback.
+          </div>
+        </div>
+      </div>
+
+      <div class="grid">
+        <section class="panel">
+          <div class="panel-inner">
+            <div class="panel-header">
+              <div>
+                <div class="panel-title">Input</div>
+                <div class="panel-caption">
+                  Paste sample columns / business terms. Newline or comma-separated.
+                </div>
+              </div>
+              <div class="row" style="justify-content: flex-end">
+                <span class="chip-pill" id="endpoint-indicator">
+                  POST /api/map
+                </span>
+              </div>
+            </div>
+
+            <div class="row">
+              <div>
+                <label for="direction">Direction</label>
+                <select id="direction">
+                  <option value="physical_to_glossary">Physical → Glossary</option>
+                  <option value="glossary_to_physical">Glossary → Physical</option>
+                  <option value="physical_to_physical">Physical → Physical</option>
+                  <option value="glossary_to_glossary">Glossary → Glossary</option>
+                </select>
+              </div>
+              <div>
+                <label>Presets</label>
+                <div class="row">
+                  <button type="button" class="secondary small" id="preset-account">
+                    Load Account sample
+                  </button>
+                  <button type="button" class="secondary small" id="preset-customer">
+                    Load Customer sample
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div class="row">
+              <div>
+                <label for="source-terms"
+                  >Source terms
+                  <span class="chip">e.g. ACT_BAL, CUST_ID</span></label
+                >
+                <textarea
+                  id="source-terms"
+                  placeholder="ACT_BAL&#10;CUST_ID&#10;ACT_NUM"
+                ></textarea>
+              </div>
+              <div>
+                <label for="target-terms"
+                  >Target terms
+                  <span class="chip">e.g. Account Balance, Customer Identifier</span></label
+                >
+                <textarea
+                  id="target-terms"
+                  placeholder="Account Balance&#10;Account Number&#10;Customer Identifier"
+                ></textarea>
+              </div>
+            </div>
+
+            <div class="row" style="justify-content: space-between; margin-top: 4px">
+              <div class="row" style="flex: 0 0 auto">
+                <span class="pill">
+                  <span
+                    style="
+                      width: 6px;
+                      height: 6px;
+                      border-radius: 999px;
+                      background: var(--accent);
+                    "
+                  ></span>
+                  Acronym expansion (e.g. ACT → Account)
+                </span>
+              </div>
+              <div class="row" style="flex: 0 0 auto; gap: 6px">
+                <button type="button" class="secondary small" id="clear-btn">
+                  Clear
+                </button>
+                <button type="button" id="suggest-btn">
+                  Suggest mappings
+                  <span
+                    style="
+                      width: 14px;
+                      height: 14px;
+                      border-radius: 999px;
+                      border: 1px solid rgba(15, 23, 42, 0.72);
+                      background: radial-gradient(circle at 30% 10%, #e0f2fe, #0369a1);
+                    "
+                  ></span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-inner">
+            <div class="results-header">
+              <div>
+                <div class="panel-title">Suggestions</div>
+                <div class="panel-caption">
+                  Review scores, approve canonical mappings, or override manually.
+                </div>
+              </div>
+              <div class="status" id="status-line">
+                <span class="status-dot idle" id="status-dot"></span>
+                <span id="status-text">Idle</span>
+              </div>
+            </div>
+
+            <div class="table-shell">
+              <table>
+                <thead>
+                  <tr>
+                    <th style="width: 26%">Source term</th>
+                    <th style="width: 28%">Suggested target</th>
+                    <th style="width: 18%">Score</th>
+                    <th style="width: 14%">Signals</th>
+                    <th style="width: 14%">Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="results-body">
+                  <tr>
+                    <td colspan="5" style="text-align: center; padding: 10px 0">
+                      <span style="font-size: 12px; color: var(--muted)">
+                        No mappings yet. Run
+                        <code style="font-size: 11px; color: var(--accent)"
+                          >Suggest mappings</code
+                        >
+                        to populate suggestions.
+                      </span>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="pagination">
+              <button type="button" class="secondary small" id="page-prev">
+                Prev
+              </button>
+              <span class="pagination-info" id="page-info">Page 1 · 0 results</span>
+              <button type="button" class="secondary small" id="page-next">
+                Next
+              </button>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <div
+        style="
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          gap: 10px;
+          margin-top: 4px;
+          font-size: 11px;
+          color: var(--muted);
+        "
+      >
+        <div style="display: flex; gap: 8px; align-items: center">
+          <span class="tag">
+            <span class="dot green"></span>
+            Approved mappings are persisted server-side
+          </span>
+          <span class="tag">
+            <span class="dot blue"></span>
+            Feedback slightly boosts / penalizes future scores
+          </span>
+        </div>
+        <div style="display: flex; gap: 6px; align-items: center">
+          <span>Embed as</span>
+          <code style="font-size: 11px; color: var(--accent)"
+            >&lt;iframe src="https://your-host/widget"&gt;</code
+          >
+        </div>
+      </div>
+    </div>
+
+    <div id="override-backdrop" class="override-backdrop hidden">
+      <div class="override-dialog">
+        <div class="override-header">
+          <div>
+            <div class="override-title">Override mapping</div>
+            <div class="override-caption" id="override-caption">
+              Choose an alternative glossary term for this source.
+            </div>
+          </div>
+        </div>
+        <div class="override-search">
+          <label for="override-input">Search glossary terms</label>
+          <input
+            id="override-input"
+            type="text"
+            placeholder="Type to filter…"
+            autocomplete="off"
+          />
+        </div>
+        <ul id="override-list" class="override-list"></ul>
+        <div class="override-footer">
+          <div style="font-size: 11px; color: var(--muted)" id="override-hint">
+            Arrow / click to select. Enter applies override.
+          </div>
+          <div style="display: flex; gap: 6px">
+            <button type="button" class="secondary small" id="override-cancel">
+              Cancel
+            </button>
+            <button type="button" class="small" id="override-apply">
+              Apply override
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const statusDot = document.getElementById("status-dot");
+      const statusText = document.getElementById("status-text");
+      const resultsBody = document.getElementById("results-body");
+      const suggestBtn = document.getElementById("suggest-btn");
+      const clearBtn = document.getElementById("clear-btn");
+      const presetAccountBtn = document.getElementById("preset-account");
+      const presetCustomerBtn = document.getElementById("preset-customer");
+      const overrideBackdrop = document.getElementById("override-backdrop");
+      const overrideInput = document.getElementById("override-input");
+      const overrideList = document.getElementById("override-list");
+      const overrideCancel = document.getElementById("override-cancel");
+      const overrideApply = document.getElementById("override-apply");
+      const overrideCaption = document.getElementById("override-caption");
+      const pagePrevBtn = document.getElementById("page-prev");
+      const pageNextBtn = document.getElementById("page-next");
+      const pageInfo = document.getElementById("page-info");
+
+      let overrideContext = null;
+      let overrideSelectedIndex = -1;
+      const PAGE_SIZE = 20;
+      let currentSuggestions = [];
+      let currentDirection = null;
+      let currentTargetTerms = [];
+      let currentPage = 0;
+
+      function setStatus(state, message) {
+        statusDot.classList.remove("idle", "error", "success");
+        switch (state) {
+          case "loading":
+            statusDot.classList.add("success");
+            break;
+          case "error":
+            statusDot.classList.add("error");
+            break;
+          case "success":
+            statusDot.classList.add("success");
+            break;
+          default:
+            statusDot.classList.add("idle");
+        }
+        statusText.textContent = message;
+      }
+
+      function parseTerms(text) {
+        return text
+          .split(/[\n,]/)
+          .map((t) => t.trim())
+          .filter(Boolean);
+      }
+
+      function renderEmpty() {
+        resultsBody.innerHTML = `
+          <tr>
+            <td colspan="5" style="text-align: center; padding: 10px 0">
+              <span style="font-size: 12px; color: var(--muted)">
+                No mappings yet. Run
+                <code style="font-size: 11px; color: var(--accent)">Suggest mappings</code>
+                to populate suggestions.
+              </span>
+            </td>
+          </tr>
+        `;
+        pageInfo.textContent = "Page 1 · 0 results";
+        pagePrevBtn.disabled = true;
+        pageNextBtn.disabled = true;
+      }
+
+      function scoreColor(score) {
+        if (score >= 0.85) return "Score · high confidence";
+        if (score >= 0.6) return "Score · likely match";
+        if (score >= 0.4) return "Score · weak match";
+        return "Score · low";
+      }
+
+      function closeOverride() {
+        overrideBackdrop.classList.add("hidden");
+        overrideContext = null;
+        overrideSelectedIndex = -1;
+      }
+
+      function renderOverrideList(options, currentTarget) {
+        overrideList.innerHTML = "";
+        if (!options.length) {
+          overrideList.innerHTML =
+            '<li class="override-item"><span class="term" style="color: var(--muted);">No matches</span></li>';
+          return;
+        }
+        options.forEach((term, idx) => {
+          const li = document.createElement("li");
+          li.className = "override-item";
+          li.dataset.index = String(idx);
+          li.innerHTML = `
+            <span class="term">${term}</span>
+            ${
+              term === currentTarget
+                ? '<span class="badge">current</span>'
+                : ""
+            }
+          `;
+          li.addEventListener("click", () => {
+            overrideSelectedIndex = idx;
+            overrideInput.value = term;
+          });
+          overrideList.appendChild(li);
+        });
+      }
+
+      function openOverrideModal(ctx) {
+        overrideContext = ctx;
+        const { sourceTerm, currentTarget, allTargets } = ctx;
+        overrideCaption.textContent = `Source: ${sourceTerm} · current: ${currentTarget}`;
+        overrideInput.value = currentTarget || "";
+        const uniqueTargets = Array.from(new Set(allTargets));
+        const initial = uniqueTargets.slice(0, 30);
+        renderOverrideList(initial, currentTarget);
+        overrideBackdrop.classList.remove("hidden");
+        overrideSelectedIndex = -1;
+        setTimeout(() => {
+          overrideInput.focus();
+          overrideInput.select();
+        }, 0);
+
+        overrideInput.oninput = () => {
+          const q = overrideInput.value.trim().toLowerCase();
+          const filtered = uniqueTargets
+            .filter((t) => t.toLowerCase().includes(q))
+            .slice(0, 50);
+          renderOverrideList(filtered, currentTarget);
+        };
+      }
+
+      function applyOverrideFromUI() {
+        if (!overrideContext) return;
+        const { sourceTerm, currentTarget, direction, candidateScores, allTargets } =
+          overrideContext;
+        let chosen = overrideInput.value.trim();
+        if (!chosen && overrideSelectedIndex >= 0) {
+          const li = overrideList.querySelector(
+            `.override-item[data-index="${overrideSelectedIndex}"]`
+          );
+          if (li) {
+            chosen = li.querySelector(".term").textContent.trim();
+          }
+        }
+        if (!chosen) return;
+        if (!allTargets.includes(chosen)) {
+          allTargets.push(chosen);
+        }
+        const scores = {
+          ...(candidateScores || {}),
+          [chosen]: candidateScores[currentTarget] ?? 0,
+        };
+        sendFeedback({
+          source_term: sourceTerm,
+          chosen_target: chosen,
+          approved: true,
+          rejected_targets: [currentTarget],
+          candidate_scores: scores,
+          direction,
+        });
+        closeOverride();
+      }
+
+      function buildRow(sourceTerm, candidate, direction, allTargets) {
+        const tr = document.createElement("tr");
+        const pct = Math.round(candidate.score * 100);
+        const boosted = candidate.boosted_by_feedback;
+
+        tr.innerHTML = `
+          <td><code>${sourceTerm}</code></td>
+          <td><code>${candidate.target_term}</code></td>
+          <td>
+            <div class="score-pill" title="${(candidate.score || 0).toFixed(3)}">
+              <div class="score-bar">
+                <div class="score-fill"></div>
+              </div>
+              <span>${pct}%</span>
+            </div>
+          </td>
+          <td>
+            ${
+              boosted
+                ? '<span class="tag"><span class="dot green"></span>Reinforced</span>'
+                : '<span class="tag"><span class="dot blue"></span>Acronym / lexical</span>'
+            }
+          </td>
+          <td class="actions">
+            <button type="button" class="small approve-btn">Approve</button>
+            <button type="button" class="small secondary reject-btn">Reject</button>
+            <button type="button" class="small secondary override-btn">Override</button>
+          </td>
+        `;
+
+        const fill = tr.querySelector(".score-fill");
+        fill.style.width = pct + "%";
+
+        // Attach handlers
+        const approveBtn = tr.querySelector(".approve-btn");
+        const rejectBtn = tr.querySelector(".reject-btn");
+        const overrideBtn = tr.querySelector(".override-btn");
+
+        const candidateScores = {};
+        candidateScores[candidate.target_term] = candidate.score;
+
+        approveBtn.addEventListener("click", () => {
+          sendFeedback({
+            source_term: sourceTerm,
+            chosen_target: candidate.target_term,
+            approved: true,
+            rejected_targets: [],
+            candidate_scores: candidateScores,
+            direction,
+          });
+        });
+
+        rejectBtn.addEventListener("click", () => {
+          sendFeedback({
+            source_term: sourceTerm,
+            chosen_target: candidate.target_term,
+            approved: false,
+            rejected_targets: [candidate.target_term],
+            candidate_scores: candidateScores,
+            direction,
+          });
+        });
+
+        overrideBtn.addEventListener("click", () => {
+          openOverrideModal({
+            sourceTerm,
+            currentTarget: candidate.target_term,
+            direction,
+            candidateScores,
+            allTargets,
+          });
+        });
+
+        return tr;
+      }
+
+      function renderSuggestionsPage() {
+        const total = currentSuggestions.length;
+        if (!total) {
+          renderEmpty();
+          return;
+        }
+        const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+        if (currentPage < 0) currentPage = 0;
+        if (currentPage >= totalPages) currentPage = totalPages - 1;
+
+        const start = currentPage * PAGE_SIZE;
+        const end = Math.min(start + PAGE_SIZE, total);
+        const slice = currentSuggestions.slice(start, end);
+
+        resultsBody.innerHTML = "";
+        for (const sugg of slice) {
+          const source = sugg.source_term;
+          const candidates = sugg.candidates || [];
+          if (!candidates.length) continue;
+          const best = candidates[0];
+          const row = buildRow(
+            source,
+            best,
+            currentDirection,
+            currentTargetTerms
+          );
+          resultsBody.appendChild(row);
+        }
+
+        pageInfo.textContent = `Page ${currentPage + 1} · ${total} results`;
+        pagePrevBtn.disabled = currentPage === 0;
+        pageNextBtn.disabled = currentPage >= totalPages - 1;
+      }
+
+      async function sendFeedback(payload) {
+        try {
+          setStatus("loading", "Sending feedback…");
+          const res = await fetch("/api/feedback", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              direction: payload.direction,
+              source_term: payload.source_term,
+              chosen_target: payload.chosen_target,
+              approved: payload.approved,
+              rejected_targets: payload.rejected_targets || [],
+              candidate_scores: payload.candidate_scores || {},
+            }),
+          });
+          if (!res.ok) {
+            throw new Error("Feedback failed");
+          }
+          setStatus("success", "Feedback recorded");
+          setTimeout(() => setStatus("idle", "Idle"), 900);
+        } catch (err) {
+          setStatus("error", "Feedback error");
+          console.error(err);
+        }
+      }
+
+      suggestBtn.addEventListener("click", async () => {
+        const direction = document.getElementById("direction").value;
+        const sourceTerms = parseTerms(
+          document.getElementById("source-terms").value || ""
+        );
+        const targetTerms = parseTerms(
+          document.getElementById("target-terms").value || ""
+        );
+
+        if (!sourceTerms.length || !targetTerms.length) {
+          alert("Provide at least one source and one target term.");
+          return;
+        }
+
+        setStatus("loading", "Computing suggestions…");
+
+        try {
+          const res = await fetch("/api/map", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              direction,
+              source_terms: sourceTerms,
+              target_terms: targetTerms,
+            }),
+          });
+
+          if (!res.ok) {
+            throw new Error("Request failed");
+          }
+
+          const data = await res.json();
+          const suggestions = data.suggestions || [];
+
+          if (!suggestions.length) {
+            currentSuggestions = [];
+            renderEmpty();
+            setStatus("success", "No candidates above threshold");
+            return;
+          }
+
+          currentSuggestions = suggestions;
+          currentDirection = data.direction;
+          currentTargetTerms = targetTerms;
+          currentPage = 0;
+          renderSuggestionsPage();
+
+          setStatus("success", "Suggestions ready");
+          setTimeout(() => setStatus("idle", "Idle"), 1200);
+        } catch (err) {
+          console.error(err);
+          setStatus("error", "Error fetching suggestions");
+        }
+      });
+
+      clearBtn.addEventListener("click", () => {
+        document.getElementById("source-terms").value = "";
+        document.getElementById("target-terms").value = "";
+        renderEmpty();
+        setStatus("idle", "Idle");
+      });
+
+      presetAccountBtn.addEventListener("click", () => {
+        document.getElementById("direction").value = "physical_to_glossary";
+        document.getElementById("source-terms").value =
+          "ACT_BAL\nACT_NUM\nACT_OPEN_DT\nCUST_ID";
+        document.getElementById("target-terms").value =
+          "Account Balance\nAccount Number\nAccount Open Date\nCustomer Identifier";
+      });
+
+      presetCustomerBtn.addEventListener("click", () => {
+        document.getElementById("direction").value = "physical_to_glossary";
+        document.getElementById("source-terms").value =
+          "CUST_ID\nCUST_ADDR\nCUST_CITY\nCUST_POST_CD";
+        document.getElementById("target-terms").value =
+          "Customer Identifier\nCustomer Address Line\nCustomer City\nCustomer Postal Code";
+      });
+
+      overrideCancel.addEventListener("click", () => {
+        closeOverride();
+      });
+
+      overrideApply.addEventListener("click", () => {
+        applyOverrideFromUI();
+      });
+
+      overrideBackdrop.addEventListener("click", (e) => {
+        if (e.target === overrideBackdrop) {
+          closeOverride();
+        }
+      });
+
+      overrideInput.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") {
+          e.preventDefault();
+          applyOverrideFromUI();
+        }
+      });
+
+      pagePrevBtn.addEventListener("click", () => {
+        if (currentPage > 0) {
+          currentPage -= 1;
+          renderSuggestionsPage();
+        }
+      });
+
+      pageNextBtn.addEventListener("click", () => {
+        const total = currentSuggestions.length;
+        const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+        if (currentPage < totalPages - 1) {
+          currentPage += 1;
+          renderSuggestionsPage();
+        }
+      });
+
+      renderEmpty();
+      setStatus("idle", "Idle");
+    </script>
+  </body>
+</html>
+
