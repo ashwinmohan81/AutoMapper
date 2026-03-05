@@ -270,6 +270,7 @@ SYNONYM_MAP: Dict[str, str] = {
     # Identifiers / codes
     "id": "identifier",
     "identifier": "identifier",
+    "identification": "identifier",
     "number": "identifier",
     "code": "identifier",
     "key": "identifier",
@@ -286,6 +287,8 @@ SYNONYM_MAP: Dict[str, str] = {
     # Products / instruments
     "product": "product",
     "instrument": "product",
+    "security": "instrument",
+    "securities": "instrument",
     "sku": "product",
     "item": "product",
     # Geography / address
@@ -411,6 +414,18 @@ SYNONYM_MAP: Dict[str, str] = {
 
 
 _token_split_re = re.compile(r"[^a-z0-9]+")
+
+
+PHRASE_NORMALIZATIONS: Dict[str, str] = {
+    # Instrument identifiers (ISIN/CUSIP/SEDOL) long forms
+    "international securities identification number": "instrument_identifier",
+    "committee on uniform securities identification procedures": "instrument_identifier",
+    "stock exchange daily official list": "instrument_identifier",
+    # Generic instrument ID phrases
+    "instrument identifier": "instrument_identifier",
+    "instrument id": "instrument_identifier",
+    "instrument id.": "instrument_identifier",
+}
 
 
 def _raw_tokens(term: str) -> List[str]:
@@ -550,7 +565,10 @@ def learn_acronyms_from_feedback(
 
 
 def normalize_term(term: str, dynamic_acronyms: Dict[str, str] | None = None) -> str:
-    term = term.strip().lower()
+    raw = term.strip().lower()
+    if raw in PHRASE_NORMALIZATIONS:
+        return PHRASE_NORMALIZATIONS[raw]
+    term = raw
     # Basic camelCase / PascalCase splitting
     spaced = re.sub(r"(?<!^)(?=[A-Z])", " ", term)
     term = spaced.lower()
