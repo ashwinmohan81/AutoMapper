@@ -1,0 +1,10 @@
+# Base acronym -> expansion overrides.
+# Keys and values are case-insensitive; both are normalised to lowercase.
+#
+# Example:
+# act: account
+# ccy: currency
+
+# You can add project-specific acronyms here or override existing ones
+# defined in the code-level ACRONYM_MAP.
+

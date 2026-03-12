@@ -1,0 +1,10 @@
+# Token -> canonical token overrides.
+# Keys and values are case-insensitive; both are normalised to lowercase.
+#
+# Example:
+# organisation: organisation
+# org:          organisation
+
+# You can add project-specific synonyms here or override existing ones
+# defined in the code-level SYNONYM_MAP.
+
