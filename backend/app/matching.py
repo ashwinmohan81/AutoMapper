@@ -3,6 +3,7 @@ from __future__ import annotations
 import math
 import re
 from collections import Counter
+from pathlib import Path
 from typing import Dict, Iterable, List, Tuple
 
 from difflib import SequenceMatcher
@@ -411,6 +412,39 @@ SYNONYM_MAP: Dict[str, str] = {
     "one": "horizon_1y",
     "three": "horizon_3y",
 }
+
+
+_CONFIG_DIR = Path(__file__).resolve().parents[1] / "config"
+
+
+def _load_yaml_map(filename: str) -> Dict[str, str]:
+    """
+    Load overrides for acronym/synonym maps from YAML.
+    Keys and values are normalised to lowercase strings.
+    """
+    try:
+        import yaml
+    except ImportError:  # pragma: no cover - defensive
+        return {}
+
+    path = _CONFIG_DIR / filename
+    if not path.exists():
+        return {}
+    with path.open("r", encoding="utf-8") as f:
+        data = yaml.safe_load(f) or {}
+    if not isinstance(data, dict):
+        return {}
+    out: Dict[str, str] = {}
+    for k, v in data.items():
+        if not isinstance(k, str) or not isinstance(v, str):
+            continue
+        out[k.strip().lower()] = v.strip().lower()
+    return out
+
+
+# Allow project-specific overrides via YAML without changing code.
+ACRONYM_MAP.update(_load_yaml_map("acronyms.yml"))
+SYNONYM_MAP.update(_load_yaml_map("synonyms.yml"))
 
 
 _token_split_re = re.compile(r"[^a-z0-9]+")
