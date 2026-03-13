@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import pytest
+
 from app import matching
 from app.schemas import MappingDirection
 
@@ -53,3 +55,22 @@ def test_suggest_mappings_orders_by_score():
     assert len(top) == 2
     # Best match should be Account Balance
     assert top[0].target_term == "Account Balance"
+
+
+def test_eval_dataset_acronym_coverage():
+    """
+    Every short token (2–4 char alpha) in eval source terms must be in ACRONYM_MAP.
+    Run backend/scripts/mine_acronyms.py to find missing acronyms and add them to
+    backend/config/acronyms.yml (or in-code ACRONYM_MAP).
+    """
+    from tests.run_eval import DATASET
+
+    all_sources: list[str] = []
+    for case in DATASET:
+        all_sources.extend(case.source_terms)
+    short = matching.short_tokens_from_terms(all_sources)
+    missing = short - set(matching.ACRONYM_MAP)
+    assert not missing, (
+        f"Eval source terms contain short tokens not in ACRONYM_MAP: {sorted(missing)}. "
+        "Add them to backend/config/acronyms.yml and restart, or run: python backend/scripts/mine_acronyms.py"
+    )

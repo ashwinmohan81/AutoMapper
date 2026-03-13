@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from enum import Enum
-from typing import Dict, List, Optional
+from typing import Any, Dict, List, Optional
 
 from pydantic import BaseModel, Field
 
@@ -17,6 +17,8 @@ class MappingRequest(BaseModel):
     direction: MappingDirection
     source_terms: List[str] = Field(..., min_length=1)
     target_terms: List[str] = Field(..., min_length=1)
+    acronym_overrides: Dict[str, str] = Field(default_factory=dict)
+    synonym_overrides: Dict[str, str] = Field(default_factory=dict)
 
 
 class MappingCandidate(BaseModel):
@@ -49,6 +51,28 @@ class MappingRecord(BaseModel):
     source_term: str
     target_term: str
     direction: MappingDirection
+
+    class Config:
+        from_attributes = True
+
+
+class EvalPair(BaseModel):
+    source_term: str
+    expected_target: str
+
+
+class EvalRequest(BaseModel):
+    use_builtin: bool = False
+    direction: Optional[MappingDirection] = None
+    pairs: List[EvalPair] = []
+    target_terms: List[str] = []
+
+
+class EvalResult(BaseModel):
+    total: int
+    top1_accuracy: float
+    top3_accuracy: float
+    mismatches: List[Dict[str, Any]] = []
 
     class Config:
         from_attributes = True

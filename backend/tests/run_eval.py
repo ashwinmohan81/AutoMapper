@@ -28,6 +28,11 @@ if str(BACKEND) not in sys.path:
 from app import matching  # type: ignore  # noqa: E402
 from app.schemas import MappingDirection  # type: ignore  # noqa: E402
 
+from tests.awm_eval_data import (  # noqa: E402
+    AWM_GLOSSARY_TERMS,
+    AWM_GOLDEN_PAIRS,
+)
+
 
 class DummySession:
     """Stand-in so suggest_mappings can be exercised without a DB."""
@@ -328,6 +333,22 @@ DATASET: List[EvalCase] = [
             "Management Fee Amount",
             "Performance Fee Amount",
         ],
+    ),
+    # Sampled from AWM physical + glossary lists (realistic AWM domain)
+    EvalCase(
+        name="awm_sampled_physical_to_glossary",
+        direction=MappingDirection.physical_to_glossary,
+        source_terms=[p for p, _ in AWM_GOLDEN_PAIRS],
+        target_terms=AWM_GLOSSARY_TERMS,
+        expected_top1=[g for _, g in AWM_GOLDEN_PAIRS],
+    ),
+    # Reverse direction: glossary → physical (sample of pairs)
+    EvalCase(
+        name="awm_sampled_glossary_to_physical",
+        direction=MappingDirection.glossary_to_physical,
+        source_terms=[g for _, g in AWM_GOLDEN_PAIRS[:40]],  # first 40 glossary terms
+        target_terms=[p for p, _ in AWM_GOLDEN_PAIRS],
+        expected_top1=[p for p, _ in AWM_GOLDEN_PAIRS[:40]],
     ),
 ]
 

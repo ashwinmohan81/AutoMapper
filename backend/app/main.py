@@ -11,6 +11,7 @@ from sqlalchemy.orm import Session
 
 from . import database, matching, models, schemas
 from .database import SessionLocal, init_db
+from .eval_runner import run_eval_cases
 
 
 app = FastAPI(title="Semantic Auto Mapper")
@@ -77,6 +78,8 @@ def map_terms(
         direction=request.direction,
         source_terms=request.source_terms,
         target_terms=request.target_terms,
+        transient_acronyms=request.acronym_overrides or None,
+        transient_synonyms=request.synonym_overrides or None,
     )
     return schemas.MappingResponse(direction=request.direction, suggestions=suggestions)
 
@@ -138,6 +141,46 @@ def submit_feedback(
 
     db.commit()
     return {"status": "ok"}
+
+
+@app.post("/api/eval", response_model=schemas.EvalResult)
+def run_eval(
+    request: schemas.EvalRequest,
+    db: Session = Depends(get_db),
+) -> schemas.EvalResult:
+    if request.use_builtin:
+        try:
+            from tests.run_eval import DATASET
+        except ImportError:
+            raise HTTPException(
+                status_code=503,
+                detail="Built-in eval requires tests package (run from repo with backend on path).",
+            )
+        result = run_eval_cases(DATASET, db=db)
+        return schemas.EvalResult(**result)
+    if not request.pairs or not request.target_terms or request.direction is None:
+        raise HTTPException(
+            status_code=400,
+            detail="Custom eval requires direction, pairs, and target_terms.",
+        )
+    case = _EvalCase(
+        name="custom",
+        direction=request.direction,
+        source_terms=[p.source_term for p in request.pairs],
+        target_terms=request.target_terms,
+        expected_top1=[p.expected_target for p in request.pairs],
+    )
+    result = run_eval_cases([case], db=db)
+    return schemas.EvalResult(**result)
+
+
+class _EvalCase:
+    def __init__(self, name: str, direction: schemas.MappingDirection, source_terms: List[str], target_terms: List[str], expected_top1: List[str]):
+        self.name = name
+        self.direction = direction
+        self.source_terms = source_terms
+        self.target_terms = target_terms
+        self.expected_top1 = expected_top1
 
 
 @app.get("/api/mappings", response_model=List[schemas.MappingRecord])
