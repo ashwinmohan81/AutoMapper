@@ -73,13 +73,26 @@ def map_terms(
     request: schemas.MappingRequest,
     db: Session = Depends(get_db),
 ) -> schemas.MappingResponse:
+    # Normalise per-run overrides to lowercase so they match the internal
+    # tokenisation (which lowercases tokens).
+    acr_overrides = {
+        k.strip().lower(): v.strip().lower()
+        for k, v in (request.acronym_overrides or {}).items()
+        if k and v
+    }
+    syn_overrides = {
+        k.strip().lower(): v.strip().lower()
+        for k, v in (request.synonym_overrides or {}).items()
+        if k and v
+    }
+
     suggestions = matching.suggest_mappings(
         db=db,
         direction=request.direction,
         source_terms=request.source_terms,
         target_terms=request.target_terms,
-        transient_acronyms=request.acronym_overrides or None,
-        transient_synonyms=request.synonym_overrides or None,
+        transient_acronyms=acr_overrides or None,
+        transient_synonyms=syn_overrides or None,
     )
     return schemas.MappingResponse(direction=request.direction, suggestions=suggestions)
 

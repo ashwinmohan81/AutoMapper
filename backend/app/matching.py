@@ -467,6 +467,34 @@ PHRASE_NORMALIZATIONS: Dict[str, str] = {
 }
 
 
+def _canonical_token(
+    token: str,
+    transient_synonyms: Dict[str, str] | None = None,
+    max_hops: int = 5,
+) -> str:
+    """
+    Apply transient + static synonym maps transitively to a single token.
+
+    This lets chains like security -> instrument -> product collapse fully
+    without risking infinite loops (max_hops + visited set safeguard).
+    """
+    seen: Set[str] = set()
+    cur = token
+    for _ in range(max_hops):
+        if cur in seen:
+            break
+        seen.add(cur)
+        next_tok: str | None = None
+        if transient_synonyms and cur in transient_synonyms:
+            next_tok = transient_synonyms[cur]
+        elif cur in SYNONYM_MAP:
+            next_tok = SYNONYM_MAP[cur]
+        if not next_tok or next_tok == cur:
+            break
+        cur = next_tok
+    return cur
+
+
 def _raw_tokens(term: str) -> List[str]:
     """Tokenise a raw term without applying acronym/synonym maps."""
     term = term.strip()
@@ -636,11 +664,7 @@ def normalize_term(
             base = ACRONYM_MAP[tok]
         elif dynamic_acronyms and tok in dynamic_acronyms:
             base = dynamic_acronyms[tok]
-        canonical = base
-        if transient_synonyms and canonical in transient_synonyms:
-            canonical = transient_synonyms[canonical]
-        else:
-            canonical = SYNONYM_MAP.get(canonical, canonical)
+        canonical = _canonical_token(base, transient_synonyms=transient_synonyms)
         expanded.append(canonical)
     return " ".join(expanded)
 
