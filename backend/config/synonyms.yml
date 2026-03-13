@@ -1,10 +1,126 @@
-# Token -> canonical token overrides.
-# Keys and values are case-insensitive; both are normalised to lowercase.
-#
-# Example:
-# organisation: organisation
-# org:          organisation
+# Token -> canonical token. Keys/values case-insensitive.
+# Merged on top of code-level SYNONYM_MAP. Add or override here.
 
-# You can add project-specific synonyms here or override existing ones
-# defined in the code-level SYNONYM_MAP.
+# Parties
+customer: customer
+client: customer
+party: customer
+person: person
+individual: person
+account_holder: customer
 
+# Accounts / contracts
+account: account
+agreement: account
+contract: account
+facility: account
+arrangement: account
+
+# Balances / amounts
+balance: balance
+amount: balance
+exposure: balance
+outstanding: balance
+
+# Identifiers
+id: identifier
+identifier: identifier
+number: identifier
+code: identifier
+key: identifier
+
+# Dates
+date: date
+open: date_open
+opening: date_open
+start: date_open
+close: date_close
+end: date_close
+maturity: date_close
+
+# Products / instruments
+product: product
+instrument: product
+security: instrument
+securities: instrument
+item: product
+
+# Address / geo
+address: address
+city: city
+town: city
+postal: postal_code
+postcode: postal_code
+zipcode: postal_code
+
+# Assets / positions
+asset: asset
+assets: asset
+holding: asset
+holdings: asset
+position: position
+portfolio: portfolio
+fund: fund
+mutual: fund
+scheme: fund
+
+# Organisations
+organisation: organisation
+organization: organisation
+entity: organisation
+corporate: organisation
+company: organisation
+institution: organisation
+
+# Benchmarks / index
+benchmark: benchmark
+index: benchmark
+
+# Books of record
+accounting_book_of_record: account_book_of_record
+investment_book_of_record: account_book_of_record
+book_of_record: account_book_of_record
+
+# PnL / transaction
+profit_and_loss: pnl
+pnl: pnl
+transaction: transaction
+trade: transaction
+
+# Settlement / FX
+straight_through_processing: stp
+delivery_versus_payment: settlement_type
+receive_versus_payment: settlement_type
+free_of_payment: settlement_type
+foreign_exchange: fx
+over_the_counter: otc
+
+# AWM concepts
+aum: assets_under_management
+assets_under_management: assets_under_management
+total_assets: total_assets
+total_net_assets: total_net_assets
+net_asset_value: net_asset_value
+nav: net_asset_value
+return: return
+performance: return
+yield: return
+volatility: risk
+vol: risk
+risk: risk
+duration: duration
+phone: phone
+telephone: phone
+mobile: phone
+currency: currency
+indicator: flag_indicator
+flag: flag_indicator
+
+# Instrument types
+equity: equity
+stock: equity
+share: equity
+shares: equity
+fixed_income: fixed_income
+bond: fixed_income
+note: fixed_income

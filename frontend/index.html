@@ -710,6 +710,42 @@
               </div>
             </div>
 
+            <div style="margin-top: 8px; font-size: 11px; color: var(--muted);">
+              <details>
+                <summary style="cursor: pointer; color: var(--accent);">
+                  Advanced overrides (per-run, optional)
+                </summary>
+                <div
+                  style="
+                    margin-top: 6px;
+                    display: grid;
+                    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+                    gap: 8px;
+                  "
+                >
+                  <div>
+                    <label for="acronym-overrides">Acronym overrides (token: expansion)</label>
+                    <textarea
+                      id="acronym-overrides"
+                      placeholder="sec: security&#10;prod: product"
+                      style="min-height: 60px;"
+                    ></textarea>
+                  </div>
+                  <div>
+                    <label for="synonym-overrides">Synonym overrides (token: canonical)</label>
+                    <textarea
+                      id="synonym-overrides"
+                      placeholder="security_identifier: product_identifier"
+                      style="min-height: 60px;"
+                    ></textarea>
+                  </div>
+                </div>
+                <div style="margin-top: 4px; font-size: 10px;">
+                  Applied only for this Suggest mappings run. Does not modify global maps or DB.
+                </div>
+              </details>
+            </div>
+
             <div class="row" style="justify-content: space-between; margin-top: 4px">
               <div class="row" style="flex: 0 0 auto">
                 <span class="pill">
@@ -882,6 +918,8 @@
       const pagePrevBtn = document.getElementById("page-prev");
       const pageNextBtn = document.getElementById("page-next");
       const pageInfo = document.getElementById("page-info");
+      const acronymOverridesInput = document.getElementById("acronym-overrides");
+      const synonymOverridesInput = document.getElementById("synonym-overrides");
 
       let overrideContext = null;
       let overrideSelectedIndex = -1;
@@ -914,6 +952,22 @@
           .split(/[\n,]/)
           .map((t) => t.trim())
           .filter(Boolean);
+      }
+
+      function parseOverrides(text) {
+        const out = {};
+        if (!text) return out;
+        for (const line of text.split("\n")) {
+          const raw = line.trim();
+          if (!raw || raw.startsWith("#")) continue;
+          const idx = raw.indexOf(":");
+          if (idx === -1) continue;
+          const key = raw.slice(0, idx).trim();
+          const val = raw.slice(idx + 1).trim();
+          if (!key || !val) continue;
+          out[key] = val;
+        }
+        return out;
       }
 
       function renderEmpty() {
@@ -1190,6 +1244,12 @@
         const targetTerms = parseTerms(
           document.getElementById("target-terms").value || ""
         );
+        const acronymOverrides = parseOverrides(
+          (acronymOverridesInput && acronymOverridesInput.value) || ""
+        );
+        const synonymOverrides = parseOverrides(
+          (synonymOverridesInput && synonymOverridesInput.value) || ""
+        );
 
         if (!sourceTerms.length || !targetTerms.length) {
           alert("Provide at least one source and one target term.");
@@ -1208,6 +1268,8 @@
               direction,
               source_terms: sourceTerms,
               target_terms: targetTerms,
+              acronym_overrides: acronymOverrides,
+              synonym_overrides: synonymOverrides,
             }),
           });
 

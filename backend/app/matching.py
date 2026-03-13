@@ -4,7 +4,7 @@ import math
 import re
 from collections import Counter
 from pathlib import Path
-from typing import Dict, Iterable, List, Tuple
+from typing import Dict, Iterable, List, Set, Tuple
 
 from difflib import SequenceMatcher
 from sqlalchemy import func, select
@@ -24,6 +24,7 @@ ACRONYM_MAP: Dict[str, str] = {
     "cntr": "contract",
     "cont": "contract",
     "fac": "facility",
+    "acc": "account",
 
     # Transaction / payment / fee
     "tx": "transaction",
@@ -240,6 +241,10 @@ ACRONYM_MAP: Dict[str, str] = {
     "bbg": "bloomberg",
     "bbgid": "bloomberg_identifier",
     "bbid": "bloomberg_identifier",
+    "instr": "instrument",
+    "instrm": "instrument",
+    "imnt": "instrument",
+    "instmt": "instrument",
 }
 
 # Domain-oriented synonym map.
@@ -470,6 +475,16 @@ def _raw_tokens(term: str) -> List[str]:
     return [t for t in _token_split_re.split(lowered) if t]
 
 
+def short_tokens_from_terms(terms: Iterable[str]) -> Set[str]:
+    """Set of 2–4 char alpha tokens in terms. Use for acronym coverage checks."""
+    out: Set[str] = set()
+    for term in terms:
+        for tok in _raw_tokens(term):
+            if 2 <= len(tok) <= 4 and tok.isalpha():
+                out.add(tok)
+    return out
+
+
 def build_dynamic_acronym_map(
     source_terms: Iterable[str],
     target_terms: Iterable[str],
@@ -598,7 +613,12 @@ def learn_acronyms_from_feedback(
     # Caller is responsible for committing.
 
 
-def normalize_term(term: str, dynamic_acronyms: Dict[str, str] | None = None) -> str:
+def normalize_term(
+    term: str,
+    dynamic_acronyms: Dict[str, str] | None = None,
+    transient_acronyms: Dict[str, str] | None = None,
+    transient_synonyms: Dict[str, str] | None = None,
+) -> str:
     raw = term.strip().lower()
     if raw in PHRASE_NORMALIZATIONS:
         return PHRASE_NORMALIZATIONS[raw]
@@ -610,17 +630,35 @@ def normalize_term(term: str, dynamic_acronyms: Dict[str, str] | None = None) ->
     expanded: List[str] = []
     for tok in tokens:
         base = tok
-        if tok in ACRONYM_MAP:
+        if transient_acronyms and tok in transient_acronyms:
+            base = transient_acronyms[tok]
+        elif tok in ACRONYM_MAP:
             base = ACRONYM_MAP[tok]
         elif dynamic_acronyms and tok in dynamic_acronyms:
             base = dynamic_acronyms[tok]
-        canonical = SYNONYM_MAP.get(base, base)
+        canonical = base
+        if transient_synonyms and canonical in transient_synonyms:
+            canonical = transient_synonyms[canonical]
+        else:
+            canonical = SYNONYM_MAP.get(canonical, canonical)
         expanded.append(canonical)
     return " ".join(expanded)
 
 
-def token_set(term: str, dynamic_acronyms: Dict[str, str] | None = None) -> Counter:
-    return Counter(normalize_term(term, dynamic_acronyms).split())
+def token_set(
+    term: str,
+    dynamic_acronyms: Dict[str, str] | None = None,
+    transient_acronyms: Dict[str, str] | None = None,
+    transient_synonyms: Dict[str, str] | None = None,
+) -> Counter:
+    return Counter(
+        normalize_term(
+            term,
+            dynamic_acronyms=dynamic_acronyms,
+            transient_acronyms=transient_acronyms,
+            transient_synonyms=transient_synonyms,
+        ).split()
+    )
 
 
 def jaccard_similarity(a: Counter, b: Counter) -> float:
@@ -637,13 +675,35 @@ def lexical_similarity(
     a: str,
     b: str,
     dynamic_acronyms: Dict[str, str] | None = None,
+    transient_acronyms: Dict[str, str] | None = None,
+    transient_synonyms: Dict[str, str] | None = None,
 ) -> float:
-    na = normalize_term(a, dynamic_acronyms)
-    nb = normalize_term(b, dynamic_acronyms)
+    na = normalize_term(
+        a,
+        dynamic_acronyms=dynamic_acronyms,
+        transient_acronyms=transient_acronyms,
+        transient_synonyms=transient_synonyms,
+    )
+    nb = normalize_term(
+        b,
+        dynamic_acronyms=dynamic_acronyms,
+        transient_acronyms=transient_acronyms,
+        transient_synonyms=transient_synonyms,
+    )
     seq_score = SequenceMatcher(None, na, nb).ratio()
     jac_score = jaccard_similarity(
-        token_set(a, dynamic_acronyms),
-        token_set(b, dynamic_acronyms),
+        token_set(
+            a,
+            dynamic_acronyms=dynamic_acronyms,
+            transient_acronyms=transient_acronyms,
+            transient_synonyms=transient_synonyms,
+        ),
+        token_set(
+            b,
+            dynamic_acronyms=dynamic_acronyms,
+            transient_acronyms=transient_acronyms,
+            transient_synonyms=transient_synonyms,
+        ),
     )
     return max(seq_score, jac_score)
 
@@ -692,6 +752,8 @@ def suggest_mappings(
     target_terms: Iterable[str],
     top_k: int = 3,
     min_score: float = 0.2,
+    transient_acronyms: Dict[str, str] | None = None,
+    transient_synonyms: Dict[str, str] | None = None,
 ) -> List[SourceSuggestion]:
     targets = list(target_terms)
     sources = list(source_terms)
@@ -723,6 +785,8 @@ def suggest_mappings(
                 source,
                 target,
                 dynamic_acronyms={**learned_acronyms, **dynamic_acronyms},
+                transient_acronyms=transient_acronyms,
+                transient_synonyms=transient_synonyms,
             )
             delta, boosted = _feedback_adjustment(db, source, target, direction)
             score = max(0.0, min(1.0, base_score + delta))

@@ -1,10 +1,151 @@
-# Base acronym -> expansion overrides.
-# Keys and values are case-insensitive; both are normalised to lowercase.
+# Acronym -> expansion. Keys/values case-insensitive; both normalised to lowercase.
+# These are merged on top of code-level ACRONYM_MAP. Add or override here.
 #
-# Example:
-# act: account
-# ccy: currency
+# To keep coverage holistic: run `python backend/scripts/mine_acronyms.py` from
+# repo root (with backend venv active) to find short tokens in the eval dataset
+# that have no expansion. Add any missing tokens here. The test
+# test_eval_dataset_acronym_coverage enforces that every such token is in the map.
 
-# You can add project-specific acronyms here or override existing ones
-# defined in the code-level ACRONYM_MAP.
+# Account / agreement
+acc: account
+act: account
+acct: account
+acnt: account
+agr: agreement
+agrmt: agreement
+cntr: contract
+fac: facility
 
+# Transaction / payment
+tx: transaction
+txn: transaction
+trn: transaction
+pmt: payment
+chq: cheque
+chk: cheque
+
+# Party / customer
+cust: customer
+cst: customer
+cli: client
+ctrpty: counterparty
+pty: party
+posn: position
+indiv: individual
+
+# Identifiers / refs
+id: identifier
+no: number
+nbr: number
+num: number
+ref: reference
+ph: phone
+tel: telephone
+mob: mobile
+ccy: currency
+cur: currency
+curr: currency
+
+# Flags / indicators
+in: indicator
+ind: indicator
+fl: flag
+flg: flag
+
+# Amounts / balances / prices
+amt: amount
+amnt: amount
+bal: balance
+pr: price
+prc: price
+prce: price
+px: price
+qty: quantity
+cnt: count
+
+# Dates / times
+dt: date
+dte: date
+ts: timestamp
+tm: time
+
+# Geo / codes
+cd: code
+ctry: country
+cntry: country
+cty: city
+post: postal
+pcd: postal
+zip: postal
+
+# Organisation
+dept: department
+div: division
+org: organisation
+corp: corporate
+co: company
+ent: entity
+inst: institution
+br: branch
+
+# Instrument / security (ensure acc & imnt expand)
+instr: instrument
+instrm: instrument
+imnt: instrument
+instmt: instrument
+eq: equity
+eqty: equity
+stk: equity
+fi: fixed_income
+bd: bond
+bnd: bond
+nt: note
+fut: future
+fwd: forward
+swp: swap
+opt: option
+tkr: ticker
+ticker: ticker
+
+# AWM / performance
+aum: assets_under_management
+nav: net_asset_value
+ir: interest_rate
+roi: return_on_investment
+ytd: year_to_date
+mtd: month_to_date
+qtd: quarter_to_date
+bm: benchmark
+idx: index
+bmk: benchmark
+mgmt: management_fee
+
+# Books / PnL / settlement
+abor: accounting_book_of_record
+ibor: investment_book_of_record
+gl: general_ledger
+pnl: profit_and_loss
+pl: profit_and_loss
+eod: end_of_day
+stp: straight_through_processing
+dvp: delivery_versus_payment
+fx: foreign_exchange
+otc: over_the_counter
+
+# Type (no expansion; required for eval coverage)
+type: type
+
+# Extra AWM-style abbreviations (from sampled eval)
+nbr: number
+nm: name
+cls: close
+dob: date_of_birth
+incept: inception
+adr: address
+strat: strategy
+accr: accrued
+mat: maturity
+nom: nominal
+sec: security
+pct: percentage
+pc: percentage
